@@ -14,10 +14,9 @@ export interface GlobalState {
 export interface MapState {
   map: MAP_TYPE[][];
   trees: TreeEntity[];
+  walls: Record<string, boolean>;
 
-  treesBeingCut: Record<string, number>;
-
-  hitTree: (id: string, amount: number) => void;
+  chopTree: (id: string) => void;
 }
 
 export interface TroopsState {
@@ -29,5 +28,5 @@ export interface TroopsState {
   moveSelectedTroops: (position: Position) => void;
   unselectAllTroops: () => void;
 
-  troopHitTree: (id: string, amount: number) => void;
+  cutTree: (id: string) => void;
 }

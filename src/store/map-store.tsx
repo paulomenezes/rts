@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { updateTree } from '../map/tree-utils.ts';
-import { MAP_SIZE } from '../util/const.ts';
+import { MAP_SIZE, wallKey } from '../util/const.ts';
 import { uuid } from '../util/functions.ts';
 import { perlinNoise } from '../util/noise.ts';
 import { MAP_TYPE, TreeEntity } from '../util/types.ts';
@@ -11,6 +11,8 @@ const treeSeed = perlinNoise.seed(2);
 
 const map: MAP_TYPE[][] = [];
 const trees: TreeEntity[] = [];
+
+const walls: Record<string, boolean> = {};
 
 for (let x = 0; x < MAP_SIZE; x++) {
   const row: MAP_TYPE[] = [];
@@ -34,6 +36,12 @@ for (let x = 0; x < MAP_SIZE; x++) {
         reachableDirection: 'left',
         health: 100,
       });
+
+      walls[wallKey(x, y)] = true;
+    }
+
+    if (type === 'water') {
+      walls[wallKey(x, y)] = true;
     }
   }
 
@@ -44,22 +52,33 @@ export const createMapSlicer: StateCreator<GameState, [], [], MapState> = (
   set,
 ) => ({
   map,
-  trees: trees.map((tree) => updateTree(trees, tree)),
-  treesBeingCut: {},
+  trees: trees.map((tree) => updateTree(walls, tree)),
+  walls,
 
-  hitTree: (id, amount) =>
+  chopTree: (id) =>
     set((state) => {
+      const tree = state.trees.find((tree) => tree.id === id);
+
+      let newWalls = {
+        ...state.walls,
+      };
+
+      if (tree) {
+        newWalls[wallKey(tree.position.x, tree.position.y)] = false;
+      }
+
       return {
+        walls: newWalls,
         trees: state.trees.map((tree) => {
           const newTree =
             tree.id === id
               ? {
                   ...tree,
-                  health: Math.max(0, tree.health - amount),
+                  health: 0,
                 }
               : tree;
 
-          return updateTree(state.trees, newTree);
+          return updateTree(newWalls, newTree);
         }),
       };
     }),

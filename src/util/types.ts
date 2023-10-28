@@ -20,7 +20,7 @@ export type TreeEntity = {
   position: Position;
   state: 'idle' | 'chopped';
   reachable: boolean;
-  reachableDirection: 'left' | 'right';
+  reachableDirection: 'left' | 'right' | 'both';
   health: number;
 };
 

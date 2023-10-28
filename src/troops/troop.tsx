@@ -82,7 +82,7 @@ export function Troop({
     } else if (troop.destinationAction === 'chop') {
       const tree = trees.find((tree) => tree.id === troop.chopTreeId);
 
-      if (tree?.reachableDirection === 'right') {
+      if (tree && tree.position.x - troop.position.x / TILE_SIZE === -1) {
         setFlip(true);
       }
     }
@@ -95,7 +95,7 @@ export function Troop({
           {troop.path.map((p, i) => (
             <div
               key={i}
-              className="absolute z-50 h-16 w-16 bg-red-500/40"
+              className="absolute z-50 h-16 w-16 bg-blue-500/40"
               style={{
                 left: p.x - TILE_SIZE / 2,
                 top: p.y - TILE_SIZE / 2,

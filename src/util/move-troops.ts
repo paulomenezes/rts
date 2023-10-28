@@ -7,7 +7,9 @@ export function moveTroops(
   troops: TroopEntity[],
   position: Position,
 ): TroopEntity[] {
-  const { trees, map } = useGameStore.getState();
+  const map = useGameStore.getState().map;
+  const trees = useGameStore.getState().trees;
+  const walls = useGameStore.getState().walls;
 
   const threshold = Math.floor(Math.sqrt(troops.length) / 2);
   let x = -threshold;
@@ -69,9 +71,17 @@ export function moveTroops(
         (tree) => tree.position.x === closestX && tree.position.y === closestY,
       );
 
-      destX =
-        closestX + (destinationTree?.reachableDirection === 'left' ? -1 : 1);
       destY = closestY;
+
+      let delta = 0;
+
+      if (destinationTree?.reachableDirection === 'both') {
+        delta = closestX - troop.position.x / TILE_SIZE < 0 ? 1 : -1;
+      } else {
+        delta = destinationTree?.reachableDirection === 'left' ? -1 : 1;
+      }
+
+      destX = closestX + delta;
     } else {
       // check if destination is water and if so, find the closest ground tile
       if (map[destX]?.[destY] === 'water') {
@@ -102,7 +112,7 @@ export function moveTroops(
 
     const path = generatePath(
       map,
-      trees,
+      walls,
       [
         Math.floor(troop.position.x / TILE_SIZE),
         Math.floor(troop.position.y / TILE_SIZE),

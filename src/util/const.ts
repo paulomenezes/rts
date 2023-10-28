@@ -11,3 +11,7 @@ export const TILE_SIDES = [
   [0, 1],
   [1, 0],
 ];
+
+export function wallKey(x: number, y: number) {
+  return `${x},${y}`;
+}

@@ -129,28 +129,9 @@ export const createTroopsSlicer: StateCreator<
 
   setTroopPosition: (id, position) =>
     set((state) => {
-      // const newTreesBeingCut: Record<string, number> = {
-      //   ...state.treesBeingCut,
-      // };
-
       const newTroops: TroopEntity[] = [];
 
       for (const troop of state.troops) {
-        // if (
-        //   troop.path &&
-        //   troop.pathIndex === troop.path.length - 1 &&
-        //   troop.destinationAction === 'chop' &&
-        //   troop.chopTreeId
-        // ) {
-        //   const key = troop.chopTreeId;
-
-        //   if (newTreesBeingCut[key]) {
-        //     newTreesBeingCut[key]++;
-        //   } else {
-        //     newTreesBeingCut[key] = 1;
-        //   }
-        // }
-
         if (troop.id === id) {
           if (troop.path && troop.pathIndex === troop.path.length - 1) {
             if (troop.destinationAction === 'chop') {
@@ -180,7 +161,6 @@ export const createTroopsSlicer: StateCreator<
       }
 
       return {
-        // treesBeingCut: newTreesBeingCut,
         troops: newTroops,
       };
     }),
@@ -195,7 +175,7 @@ export const createTroopsSlicer: StateCreator<
         troops: state.troops.map((troop) => {
           const newTroop = newTroops.find((t) => t.id === troop.id);
 
-          if (troop.chopTreeId && !newTroop?.chopTreeId) {
+          if (troop.chopTreeId && newTroop && !newTroop?.chopTreeId) {
             eventBus.dispatch('stop-cutting', { troop });
           }
 
@@ -216,16 +196,13 @@ export const createTroopsSlicer: StateCreator<
       })),
     })),
 
-  troopHitTree: (id, amount) =>
+  cutTree: (id) =>
     set((state) => {
       const trees = state.trees;
 
-      const currentTreeHealth =
-        trees.find((tree) => tree.id === id)?.health ?? 0;
-
       return {
         troops: state.troops.map((troop) => {
-          if (troop.chopTreeId === id && currentTreeHealth - amount <= 0) {
+          if (troop.chopTreeId === id) {
             let closestDistance = Infinity;
             let closestTree: TreeEntity | undefined;
 

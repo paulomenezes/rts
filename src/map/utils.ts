@@ -1,5 +1,3 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { useGameStore } from '../store/index.tsx';
 import { MAP_TYPE } from '../util/types.ts';
 
@@ -44,8 +42,4 @@ export function desert(
   left?: boolean,
 ) {
   return border('desert', x, y, top, right, bottom, left);
-}
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
 }

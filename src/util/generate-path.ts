@@ -1,8 +1,9 @@
-import { MAP_TYPE, PathfindPoint, TreeEntity } from './types.ts';
+import { wallKey } from './const.ts';
+import { MAP_TYPE, PathfindPoint } from './types.ts';
 
 export function generatePath(
   map: MAP_TYPE[][],
-  trees: TreeEntity[],
+  walls: Record<string, boolean>,
   startPosition: [number, number],
   endPosition: [number, number],
 ) {
@@ -47,34 +48,26 @@ export function generatePath(
 
     const neighbors: PathfindPoint[] = [];
 
+    function addNeighbor(x: number, y: number) {
+      if (grid[x][y].type !== 'water' && !walls[wallKey(x, y)]) {
+        neighbors.push(grid[x][y]);
+      }
+    }
+
     if (i < map.length - 1) {
-      neighbors.push(grid[i + 1][j]);
+      addNeighbor(i + 1, j);
     }
     if (i > 0) {
-      neighbors.push(grid[i - 1][j]);
+      addNeighbor(i - 1, j);
     }
     if (j < map.length - 1) {
-      neighbors.push(grid[i][j + 1]);
+      addNeighbor(i, j + 1);
     }
     if (j > 0) {
-      neighbors.push(grid[i][j - 1]);
+      addNeighbor(i, j - 1);
     }
 
-    return neighbors.filter((neighbor) => {
-      // const tree = trees.find((tree) => {
-      //   return (
-      //     tree.position.x === neighbor.x &&
-      //     tree.position.y === neighbor.y &&
-      //     tree.health > 0
-      //   );
-      // });
-
-      // if (tree) {
-      //   return false;
-      // }
-
-      return neighbor.type !== 'water';
-    });
+    return neighbors;
   }
 
   function init() {

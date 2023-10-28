@@ -4,25 +4,14 @@ import { useGameStore } from '../store/index.tsx';
 import { TILE_SIZE } from '../util/const.ts';
 import { TreeEntity, TroopEntity } from '../util/types.ts';
 import './tree.css';
-import { cn } from './utils.ts';
-
-// const WIDTH = 768;
-// const HEIGHT = 576;
-
-// const X_SPRITES = 4;
-// const Y_SPRITES = 3;
-
-// const TOTAL_SPRITES_HIT = 2;
-// const TOTAL_SPRITES_CHOPPED = 1;
-// const TOTAL_SPRITES = 4;
-
-// const width = WIDTH / X_SPRITES;
-// const height = HEIGHT / Y_SPRITES;
+import { cn } from '../util/functions.ts';
 
 export function Tree({ tree }: { tree: TreeEntity }) {
   const debug = useGameStore((state) => state.debug);
-  const hitTree = useGameStore((state) => state.hitTree);
-  const troopHitTree = useGameStore((state) => state.troopHitTree);
+  const chopTree = useGameStore((state) => state.chopTree);
+  const cutTree = useGameStore((state) => state.cutTree);
+
+  const [health, setHealth] = useState(tree.health);
 
   const [troopsThatAreCutting, setTroopsThatAreCutting] = useState<string[]>(
     [],
@@ -35,12 +24,12 @@ export function Tree({ tree }: { tree: TreeEntity }) {
 
   const animation: TreeAnimation = useMemo(
     () =>
-      tree.health <= 0
+      health <= 0
         ? TreeAnimation.Chopped
         : isBeingCut
         ? TreeAnimation.Hit
         : TreeAnimation.Idle,
-    [tree.health, isBeingCut],
+    [health, isBeingCut],
   );
 
   const x = useMemo(() => tree.position.x * TILE_SIZE, [tree.position.x]);
@@ -71,8 +60,18 @@ export function Tree({ tree }: { tree: TreeEntity }) {
   useEffect(() => {
     if (isBeingCut) {
       const id = setInterval(() => {
-        troopHitTree(tree.id, troopsThatAreCutting.length * 10);
-        hitTree(tree.id, troopsThatAreCutting.length * 10);
+        setHealth((prev) => {
+          const newHealth = Math.max(
+            0,
+            prev - troopsThatAreCutting.length * 10,
+          );
+
+          if (newHealth === 0) {
+            clearInterval(id);
+          }
+
+          return newHealth;
+        });
       }, 500);
 
       return () => {
@@ -80,6 +79,15 @@ export function Tree({ tree }: { tree: TreeEntity }) {
       };
     }
   }, [isBeingCut]);
+
+  useEffect(() => {
+    if (health === 0) {
+      chopTree(tree.id);
+      cutTree(tree.id);
+
+      setTroopsThatAreCutting([]);
+    }
+  }, [health]);
 
   const hasTroopsBehind = useGameStore((state) =>
     state.troops.some(
@@ -99,17 +107,9 @@ export function Tree({ tree }: { tree: TreeEntity }) {
         })}
         style={
           {
-            // '--pos-x': `-${width * spriteCount}px`,
-            // '--pos-y': `-${posY}px`,
-            // backgroundImage: `url("/assets/Resources/Trees/Tree.png")`,
-            // backgroundPosition: `0px -${posY}px`,
-            // transform: flip ? 'scaleX(-1)' : 'scaleX(1)',
-            // width,
-            // height,
-            // animation: `play 0.5s steps(${spriteCount}) infinite`,
             top: y - TILE_SIZE * 2,
             left: x - TILE_SIZE,
-            zIndex: tree.health > 0 ? 200 : 3,
+            zIndex: health > 0 ? 200 : 3,
             WebkitMaskImage: hasTroopsBehind
               ? 'linear-gradient(rgba(0, 0, 0, 0.3), black 80%)'
               : '',
@@ -118,28 +118,6 @@ export function Tree({ tree }: { tree: TreeEntity }) {
       >
         <img src="/assets/Resources/Trees/Tree.png" />
       </div>
-
-      {/* <div
-        className="absolute"
-        style={
-          {
-            '--pos-x': `-${width * spriteCount}px`,
-            '--pos-y': `-${posY}px`,
-            backgroundImage: `url("/assets/Resources/Trees/Tree.png")`,
-            backgroundPosition: `0px -${posY}px`,
-            transform: flip ? 'scaleX(-1)' : 'scaleX(1)',
-            width,
-            height,
-            animation: `play 0.5s steps(${spriteCount}) infinite`,
-            top: y - TILE_SIZE * 2,
-            left: x - TILE_SIZE,
-            zIndex: tree.health > 0 ? 200 : 3,
-            WebkitMaskImage: hasTroopsBehind
-              ? 'linear-gradient(rgba(0, 0, 0, 0.3), black 80%)'
-              : '',
-          } as CSSProperties
-        }
-      ></div> */}
 
       {debug && (
         <div
@@ -153,7 +131,7 @@ export function Tree({ tree }: { tree: TreeEntity }) {
             height: TILE_SIZE,
           }}
         >
-          {x / TILE_SIZE} - {y / TILE_SIZE} - {tree.health}
+          {health}
         </div>
       )}
     </>

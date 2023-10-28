@@ -1,11 +1,13 @@
 import { CSSProperties, Fragment, memo } from 'react';
 import { useGameStore } from '../store/index.tsx';
-import { TILE_SIZE } from '../util/const.ts';
+import { TILE_SIZE, wallKey } from '../util/const.ts';
 import { MAP_TYPE } from '../util/types.ts';
 import { desert, water } from './utils.ts';
 
 export const ManageMap = memo(function ManageMap() {
+  const debug = useGameStore((state) => state.debug);
   const map = useGameStore((state) => state.map);
+  const walls = useGameStore((state) => state.walls);
   const cameraPosition = useGameStore((state) => state.cameraPosition);
   const tilesOnScreen = useGameStore((state) => state.tilesOnScreen);
 
@@ -177,6 +179,21 @@ export const ManageMap = memo(function ManageMap() {
                 >
                   {/* {debug ? `${x} - ${y}` : null} */}
                 </div>
+
+                {debug && walls[wallKey(x, y)] && (
+                  <div
+                    className="absolute flex items-center justify-center bg-red-500/40 text-center"
+                    style={
+                      {
+                        width: TILE_SIZE,
+                        height: TILE_SIZE,
+                        top: TILE_SIZE * y,
+                        left: TILE_SIZE * x,
+                        zIndex: 300,
+                      } as CSSProperties
+                    }
+                  />
+                )}
               </Fragment>
             );
           })}
