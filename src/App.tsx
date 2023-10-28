@@ -1,30 +1,30 @@
-const Link = (props: JSX.IntrinsicElements['a']) => (
-  <a
-    className="text-pink-500 underline hover:no-underline dark:text-pink-400"
-    {...props}
-  />
-);
+import { KeyboardEvents } from './events/keyboard-events.tsx';
+import { MouseEvents } from './events/mouse-events.tsx';
+import { WindowEvents } from './events/window-events.tsx';
+import { Game } from './game.tsx';
+import { ManageMap } from './map/manage-map.tsx';
+import { ManageTrees } from './map/manage-trees.tsx';
+import { useGameStore } from './store/index.tsx';
+import { TILE_SIZE } from './util/const.ts';
 
-export default function App() {
+export function App() {
+  const cameraPosition = useGameStore((state) => state.cameraPosition);
+
   return (
-    <div className="mx-auto my-8 mt-10 w-8/12 rounded border border-gray-200 p-4 shadow-md dark:border-neutral-600 dark:bg-neutral-800 dark:shadow-none">
-      <h1 className="mb-4 text-4xl">Welcome</h1>
-      <p className="my-4">
-        <em>Minimal, fast, sensible defaults.</em>
-      </p>
-      <p className="my-4">
-        Using <Link href="https://vitejs.dev/">Vite</Link>,{' '}
-        <Link href="https://reactjs.org/">React</Link>,{' '}
-        <Link href="https://www.typescriptlang.org/">TypeScript</Link> and{' '}
-        <Link href="https://tailwindcss.com/">Tailwind</Link>.
-      </p>
-      <p className="my-4">
-        Change{' '}
-        <code className="border-1 2py-1 rounded border border-pink-500 bg-neutral-100 px-1 font-mono text-pink-500 dark:border-pink-400 dark:bg-neutral-700 dark:text-pink-400">
-          src/App.tsx
-        </code>{' '}
-        for live updates.
-      </p>
+    <div
+      className="absolute transition-all"
+      style={{
+        left: cameraPosition.x * TILE_SIZE,
+        top: cameraPosition.y * TILE_SIZE,
+      }}
+    >
+      <ManageMap />
+      <ManageTrees />
+      <Game />
+
+      <MouseEvents />
+      <KeyboardEvents />
+      <WindowEvents />
     </div>
   );
 }

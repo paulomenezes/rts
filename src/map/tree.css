@@ -1,0 +1,44 @@
+.tree {
+  width: 192px;
+  height: 192px;
+}
+
+.tree.idle img {
+  animation: moveSpritesheet 0.5s steps(4) infinite;
+}
+
+.tree.hit img {
+  top: -192px;
+
+  animation: moveSpritesheet2 0.5s steps(2) infinite;
+}
+
+.tree.chopped img {
+  top: -384px;
+}
+
+.tree img {
+  width: 768px;
+  height: 576px;
+
+  position: absolute;
+  max-width: none;
+}
+
+@keyframes moveSpritesheet {
+  from {
+    transform: translate3d(0px, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes moveSpritesheet2 {
+  from {
+    transform: translate3d(0px, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
