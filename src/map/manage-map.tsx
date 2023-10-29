@@ -1,13 +1,34 @@
 import { CSSProperties, Fragment, memo } from 'react';
 import { useGameStore } from '../store/index.tsx';
-import { TILE_SIZE, wallKey } from '../util/const.ts';
-import { MAP_TYPE } from '../util/types.ts';
+import {
+  CAMERA_MAP_OFFSET,
+  TILE_SIZE,
+  wallKey,
+  Z_INDEX,
+} from '../util/const.ts';
+import { DECORATION_SIZES, MAP_TYPE } from '../util/types.ts';
 import { desert, water } from './utils.ts';
+
+const DECORATIONS_LARGE: Record<number, { width: number; height: number }> = {
+  16: {
+    width: 64,
+    height: 128,
+  },
+  17: {
+    width: 64,
+    height: 128,
+  },
+  18: {
+    width: 192,
+    height: 192,
+  },
+};
 
 export const ManageMap = memo(function ManageMap() {
   const debug = useGameStore((state) => state.debug);
   const map = useGameStore((state) => state.map);
   const walls = useGameStore((state) => state.walls);
+  const decorations = useGameStore((state) => state.decorations);
   const cameraPosition = useGameStore((state) => state.cameraPosition);
   const tilesOnScreen = useGameStore((state) => state.tilesOnScreen);
 
@@ -18,10 +39,11 @@ export const ManageMap = memo(function ManageMap() {
           {map[x].map((_, y) => {
             if (
               !(
-                x >= cameraPosition.x * -1 - 2 &&
-                x <= cameraPosition.x * -1 + tilesOnScreen.x &&
-                y >= cameraPosition.y * -1 - 2 &&
-                y <= cameraPosition.y * -1 + tilesOnScreen.y
+                x >= cameraPosition.x * -1 - CAMERA_MAP_OFFSET &&
+                x <=
+                  cameraPosition.x * -1 + tilesOnScreen.x + CAMERA_MAP_OFFSET &&
+                y >= cameraPosition.y * -1 - CAMERA_MAP_OFFSET &&
+                y <= cameraPosition.y * -1 + tilesOnScreen.y + CAMERA_MAP_OFFSET
               )
             ) {
               return null;
@@ -149,6 +171,8 @@ export const ManageMap = memo(function ManageMap() {
               hasDesert = false;
             }
 
+            const decoration = decorations[wallKey(x, y)];
+
             return (
               <Fragment key={y}>
                 {hasFoam && <Foam x={x} y={y} />}
@@ -173,12 +197,25 @@ export const ManageMap = memo(function ManageMap() {
                       height: TILE_SIZE,
                       top: TILE_SIZE * y,
                       left: TILE_SIZE * x,
-                      zIndex: type === 'water' ? 0 : type === 'desert' ? 2 : 3,
+                      zIndex:
+                        type === 'water'
+                          ? Z_INDEX.WATER
+                          : type === 'desert'
+                          ? Z_INDEX.DESERT
+                          : Z_INDEX.GROUND,
                     } as CSSProperties
                   }
                 >
                   {/* {debug ? `${x} - ${y}` : null} */}
                 </div>
+
+                {decoration?.place === 'water' ? (
+                  <Rock x={x} y={y} size={decoration.size} />
+                ) : (
+                  decoration?.place === 'ground' && (
+                    <Decoration x={x} y={y} type={decoration.type} />
+                  )
+                )}
 
                 {debug && walls[wallKey(x, y)] && (
                   <div
@@ -189,7 +226,7 @@ export const ManageMap = memo(function ManageMap() {
                         height: TILE_SIZE,
                         top: TILE_SIZE * y,
                         left: TILE_SIZE * x,
-                        zIndex: 300,
+                        zIndex: y + Z_INDEX.MAP_DEBUG,
                       } as CSSProperties
                     }
                   />
@@ -202,6 +239,62 @@ export const ManageMap = memo(function ManageMap() {
     </div>
   );
 });
+
+function Rock({
+  x,
+  y,
+  size,
+}: {
+  x: number;
+  y: number;
+  size: DECORATION_SIZES;
+}) {
+  return (
+    <div
+      className="play absolute flex items-center justify-center text-center"
+      style={
+        {
+          '--pos-x': `-${128 * 8}px`,
+          '--pos-y': `0px`,
+          backgroundImage: `url("/assets/Terrain/Water/Rocks/Rocks_${size}.png")`,
+          animation: `play 1s steps(8) infinite`,
+          width: 128,
+          height: 128,
+          top: TILE_SIZE * y - TILE_SIZE / 2,
+          left: TILE_SIZE * x - TILE_SIZE / 2,
+          zIndex: Z_INDEX.WATER_ROCK,
+        } as CSSProperties
+      }
+    />
+  );
+}
+
+function Decoration({ x, y, type }: { x: number; y: number; type: number }) {
+  const offsetX =
+    Math.floor((DECORATIONS_LARGE[type]?.width ?? TILE_SIZE) / TILE_SIZE / 2) *
+    TILE_SIZE;
+
+  const offsetY =
+    (Math.floor((DECORATIONS_LARGE[type]?.height ?? TILE_SIZE) / TILE_SIZE) -
+      1) *
+    TILE_SIZE;
+
+  return (
+    <div
+      className="absolute flex items-center justify-center text-center text-white"
+      style={{
+        backgroundImage: `url("/assets/Deco/${type
+          .toString()
+          .padStart(2, '0')}.png")`,
+        width: DECORATIONS_LARGE[type]?.width ?? TILE_SIZE,
+        height: DECORATIONS_LARGE[type]?.height ?? TILE_SIZE,
+        top: TILE_SIZE * y - offsetY,
+        left: TILE_SIZE * x - offsetX,
+        zIndex: y * 100,
+      }}
+    />
+  );
+}
 
 function Foam({ x, y }: { x: number; y: number }) {
   return (
@@ -217,7 +310,7 @@ function Foam({ x, y }: { x: number; y: number }) {
           height: 192,
           top: TILE_SIZE * y - TILE_SIZE,
           left: TILE_SIZE * x - TILE_SIZE,
-          zIndex: 1,
+          zIndex: Z_INDEX.WATER_FOAM,
         } as CSSProperties
       }
     />
@@ -235,7 +328,7 @@ function Desert({ type, x, y }: { type: MAP_TYPE; x: number; y: number }) {
         height: TILE_SIZE,
         top: TILE_SIZE * y,
         left: TILE_SIZE * x,
-        zIndex: type === 'water' ? 0 : type === 'desert' ? 2 : 3,
+        zIndex: Z_INDEX.DESERT, // y, // type === 'water' ? 0 : type === 'desert' ? 2 : 3,
       }}
     />
   );

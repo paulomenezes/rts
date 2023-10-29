@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 import { useGameStore } from '../store/index.tsx';
-import { TILE_SIZE } from '../util/const.ts';
+import { TILE_SIZE, Z_INDEX } from '../util/const.ts';
 import { Position } from '../util/types.ts';
 
 export const MouseEvents = memo(function MouseEvents() {
@@ -118,8 +118,9 @@ export const MouseEvents = memo(function MouseEvents() {
     <>
       {startPos && position && dragging && (
         <div
-          className="absolute z-[1000] border-2 border-white bg-white/20"
+          className="absolute border-2 border-white bg-white/20"
           style={{
+            zIndex: Z_INDEX.MOUSE,
             left: Math.min(startPos.x, position.x),
             top: Math.min(startPos.y, position.y),
             width: Math.abs(startPos.x - position.x),

@@ -24,6 +24,24 @@ export type TreeEntity = {
   health: number;
 };
 
+export type DecorationEntity = {
+  id: string;
+  position: Position;
+  block: boolean;
+} & (DecorationEntityWater | DecorationEntityGround);
+
+export type DecorationEntityGround = {
+  place: 'ground';
+  type: number;
+};
+
+export type DecorationEntityWater = {
+  place: 'water';
+  size: DECORATION_SIZES;
+};
+
+export type DECORATION_SIZES = '01' | '02' | '03' | '04';
+
 export type MAP_TYPE = 'water' | 'desert' | 'ground';
 
 export type PathfindPoint = {

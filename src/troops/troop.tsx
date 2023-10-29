@@ -1,6 +1,6 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/index.tsx';
-import { TILE_SIZE } from '../util/const.ts';
+import { TILE_SIZE, Z_INDEX } from '../util/const.ts';
 import { TroopEntity } from '../util/types.ts';
 
 export function Troop({
@@ -88,6 +88,11 @@ export function Troop({
     }
   }, [frameTime]);
 
+  const offsetY = useMemo(
+    () => Math.floor((height ?? TILE_SIZE) / TILE_SIZE / 2),
+    [height],
+  );
+
   return (
     <>
       {troop.path && debug && (
@@ -113,11 +118,17 @@ export function Troop({
             width,
             height,
           }}
-        ></div>
+        >
+          <span className="absolute top-[64px] text-white">
+            {(posY / TILE_SIZE + offsetY) * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP}
+          </span>
+        </div>
       )}
       <div
-        className="absolute z-50"
+        className="absolute"
         style={{
+          zIndex:
+            (posY / TILE_SIZE + offsetY) * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP,
           top: posY,
           left: posX,
           width,

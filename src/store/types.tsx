@@ -1,4 +1,10 @@
-import { MAP_TYPE, Position, TreeEntity, TroopEntity } from '../util/types.ts';
+import {
+  DecorationEntity,
+  MAP_TYPE,
+  Position,
+  TreeEntity,
+  TroopEntity,
+} from '../util/types.ts';
 
 export type GameState = GlobalState & MapState & TroopsState;
 
@@ -15,6 +21,7 @@ export interface MapState {
   map: MAP_TYPE[][];
   trees: TreeEntity[];
   walls: Record<string, boolean>;
+  decorations: Record<string, DecorationEntity>;
 
   chopTree: (id: string) => void;
 }

@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { eventBus } from '../events/event-bus.ts';
 import { useGameStore } from '../store/index.tsx';
-import { TILE_SIZE } from '../util/const.ts';
+import { TILE_SIZE, Z_INDEX } from '../util/const.ts';
 import { TreeEntity, TroopEntity } from '../util/types.ts';
 import './tree.css';
 import { cn } from '../util/functions.ts';
@@ -109,7 +109,7 @@ export function Tree({ tree }: { tree: TreeEntity }) {
           {
             top: y - TILE_SIZE * 2,
             left: x - TILE_SIZE,
-            zIndex: health > 0 ? 200 : 3,
+            zIndex: tree.position.y * Z_INDEX.ITEM_OFFSET + Z_INDEX.TREE,
             WebkitMaskImage: hasTroopsBehind
               ? 'linear-gradient(rgba(0, 0, 0, 0.3), black 80%)'
               : '',
@@ -121,17 +121,18 @@ export function Tree({ tree }: { tree: TreeEntity }) {
 
       {debug && (
         <div
-          className={`absolute z-[500] border-2 text-xs text-white ${
+          className={`absolute border-2 text-xs text-white ${
             tree.reachable ? 'border-green-500' : 'border-blue-500'
           }`}
           style={{
+            zIndex: Z_INDEX.TREE_DEBUG,
             top: y,
             left: x,
             width: TILE_SIZE,
             height: TILE_SIZE,
           }}
         >
-          {health}
+          {health} - {tree.position.y * Z_INDEX.ITEM_OFFSET + Z_INDEX.TREE}
         </div>
       )}
     </>
