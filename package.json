@@ -12,7 +12,11 @@
     "pnpm": ">=7.1.0"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "3.0.0-beta.68",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.0.0",
     "clsx": "^2.0.0",
+    "million": "^2.6.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-fps": "^1.0.6",
@@ -30,8 +34,10 @@
     "@types/react-dom": "^18.2.12",
     "@types/uuid": "^9.0.6",
     "@vitejs/plugin-react": "^4.1.0",
+    "@vitest/coverage-v8": "^0.34.6",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.51.0",
+    "jsdom": "^22.1.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",
@@ -51,7 +57,8 @@
     "lint": "eslint --cache .",
     "test": "npm-run-all --parallel tsc:check vitest:run lint lint:format",
     "tsc:check": "tsc",
-    "vitest:run": "vitest run"
+    "vitest:run": "vitest run",
+    "vitest:watch": "vitest watch --coverage"
   },
   "browserslist": [
     ">0.2%",

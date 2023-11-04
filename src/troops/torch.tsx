@@ -1,18 +1,18 @@
-import { Troop } from './troop.tsx';
+// import { Troop } from './troop.tsx';
 
-const WIDTH = 1344;
-const HEIGHT = 960;
+// const WIDTH = 1344;
+// const HEIGHT = 960;
 
-const X_SPRITES = 7;
-const Y_SPRITES = 5;
+// const X_SPRITES = 7;
+// const Y_SPRITES = 5;
 
-const FACTION = 'Goblins';
+// const FACTION = 'Goblins';
 
-const TROOP = 'Torch';
-const COLOR = 'Blue';
+// const TROOP = 'Torch';
+// const COLOR = 'Blue';
 
-const TOTAL_SPRITES_IDLE = 7;
-const TOTAL_SPRITES = 6;
+// const TOTAL_SPRITES_IDLE = 7;
+// const TOTAL_SPRITES = 6;
 
 export function Torch({
   x,
@@ -23,26 +23,28 @@ export function Torch({
   y: number;
   animation: TorchAnimation;
 }) {
-  const posY = animation * (HEIGHT / Y_SPRITES);
+  // const posY = animation * (HEIGHT / Y_SPRITES);
 
-  const spriteCount =
-    TorchAnimation.Idle === animation ? TOTAL_SPRITES_IDLE : TOTAL_SPRITES;
+  // const spriteCount =
+  //   TorchAnimation.Idle === animation ? TOTAL_SPRITES_IDLE : TOTAL_SPRITES;
 
-  return (
-    <Troop
-      imageWidth={WIDTH}
-      imageHeight={HEIGHT}
-      startX={x}
-      startY={y}
-      spriteCount={spriteCount}
-      faction={FACTION}
-      troopType={TROOP}
-      color={COLOR}
-      spriteYPosition={posY}
-      xSprites={X_SPRITES}
-      ySprites={Y_SPRITES}
-    />
-  );
+  return null;
+
+  // return (
+  //   <Troop
+  //     imageWidth={WIDTH}
+  //     imageHeight={HEIGHT}
+  //     startX={x}
+  //     startY={y}
+  //     spriteCount={spriteCount}
+  //     faction={FACTION}
+  //     troopType={TROOP}
+  //     color={COLOR}
+  //     spriteYPosition={posY}
+  //     xSprites={X_SPRITES}
+  //     ySprites={Y_SPRITES}
+  //   />
+  // );
 }
 
 export enum TorchAnimation {

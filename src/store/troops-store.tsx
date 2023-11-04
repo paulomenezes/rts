@@ -1,8 +1,8 @@
 import { StateCreator } from 'zustand';
-import { eventBus } from '../events/event-bus.ts';
-import { TILE_SIZE } from '../util/const.ts';
-import { moveTroops } from '../util/move-troops.ts';
-import { PawnAnimation, TreeEntity, TroopEntity } from '../util/types.ts';
+import { createActionsAfterCutTree } from '../actions/create-actions-after-cut-tree.ts';
+import { createActionsFromUserInput } from '../actions/create-actions-from-user-input.ts';
+import { doAction } from '../troops/actions.tsx';
+import { PawnAnimation } from '../util/types.ts';
 import { GameState, TroopsState } from './types.tsx';
 
 export const createTroopsSlicer: StateCreator<
@@ -11,54 +11,24 @@ export const createTroopsSlicer: StateCreator<
   [],
   TroopsState
 > = (set) => ({
-  troops: [
-    {
-      id: '1',
-      selected: false,
-      position: { x: 448, y: 7 * TILE_SIZE },
-      animation: PawnAnimation.Idle,
-    },
-    {
-      id: '2',
-      selected: false,
-      position: { x: 448 + TILE_SIZE, y: 7 * TILE_SIZE },
-      animation: PawnAnimation.Idle,
-    },
-    {
-      id: '3',
-      selected: false,
-      position: { x: 448 + TILE_SIZE * 2, y: 7 * TILE_SIZE },
-      animation: PawnAnimation.Idle,
-    },
-    {
-      id: '4',
-      selected: false,
-      position: { x: 448 + TILE_SIZE * 3, y: 7 * TILE_SIZE },
-      animation: PawnAnimation.Idle,
-    },
-    {
-      id: '5',
-      selected: false,
-      position: { x: 448 + TILE_SIZE * 4, y: 7 * TILE_SIZE },
-      animation: PawnAnimation.Idle,
-    },
-  ],
+  troops: Array.from({ length: 20 }).map((_, i) => ({
+    id: i.toString(),
+    selected: false,
+    position: { x: 3, y: 3 },
+    animation: PawnAnimation.Idle,
+    actionInProgress: false,
+    actions: [],
+    carryAmount: 0,
+  })),
 
   selectTroops: (position) =>
     set((state) => {
-      const posX =
-        Math.floor(position.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
-      const posY =
-        Math.floor(position.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+      const posX = Math.floor(position.x);
+      const posY = Math.floor(position.y);
 
       return {
         troops: state.troops.map((troop) => {
-          if (
-            posX >= troop.position.x &&
-            posX <= troop.position.x + TILE_SIZE &&
-            posY >= troop.position.y &&
-            posY <= troop.position.y + TILE_SIZE
-          ) {
+          if (posX === troop.position.x && posY === troop.position.y) {
             return {
               ...troop,
               selected: true,
@@ -72,18 +42,11 @@ export const createTroopsSlicer: StateCreator<
 
   selectAllTroopsWithSameType: (position) =>
     set((state) => {
-      const posX =
-        Math.floor(position.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
-      const posY =
-        Math.floor(position.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE / 2;
+      const posX = Math.floor(position.x);
+      const posY = Math.floor(position.y);
 
       const selectedTroop = state.troops.find((troop) => {
-        return (
-          posX >= troop.position.x &&
-          posX <= troop.position.x + TILE_SIZE &&
-          posY >= troop.position.y &&
-          posY <= troop.position.y + TILE_SIZE
-        );
+        return posX === troop.position.x && posY === troop.position.y;
       });
 
       if (selectedTroop) {
@@ -103,18 +66,18 @@ export const createTroopsSlicer: StateCreator<
 
   selectTroopsByArea: (start, end) =>
     set((state) => {
-      const left = Math.min(start.x, end.x);
-      const top = Math.min(start.y, end.y);
-      const width = Math.abs(start.x - end.x);
-      const height = Math.abs(start.y - end.y);
+      const left = Math.floor(Math.min(start.x, end.x));
+      const top = Math.floor(Math.min(start.y, end.y));
+      const width = Math.floor(Math.abs(start.x - end.x));
+      const height = Math.floor(Math.abs(start.y - end.y));
 
       return {
         troops: state.troops.map((troop) => {
           if (
             left <= troop.position.x &&
-            left + width >= troop.position.x + TILE_SIZE &&
+            left + width >= troop.position.x &&
             top <= troop.position.y &&
-            top + height >= troop.position.y + TILE_SIZE
+            top + height >= troop.position.y
           ) {
             return {
               ...troop,
@@ -129,58 +92,22 @@ export const createTroopsSlicer: StateCreator<
 
   setTroopPosition: (id, position) =>
     set((state) => {
-      const newTroops: TroopEntity[] = [];
-
-      for (const troop of state.troops) {
-        if (troop.id === id) {
-          if (troop.path && troop.pathIndex === troop.path.length - 1) {
-            if (troop.destinationAction === 'chop') {
-              eventBus.dispatch('start-cutting', { troop });
-            }
-
-            newTroops.push({
-              ...troop,
-              position,
-              destination: undefined,
-              path: undefined,
-              animation:
-                troop.destinationAction === 'chop'
-                  ? PawnAnimation.Chop
-                  : PawnAnimation.Idle,
-            });
-          } else {
-            newTroops.push({
-              ...troop,
-              position,
-              pathIndex: troop.pathIndex ? troop.pathIndex + 1 : 1,
-            });
-          }
-        } else {
-          newTroops.push(troop);
-        }
-      }
-
       return {
-        troops: newTroops,
+        troops: state.troops.map((troop) =>
+          troop.id === id ? doAction({ ...troop, position }) : troop,
+        ),
       };
     }),
 
   moveSelectedTroops: (position) =>
     set((state) => {
-      const troops = state.troops.filter((troop) => troop.selected);
-
-      const newTroops = moveTroops(troops, position);
+      position.x = Math.floor(position.x);
+      position.y = Math.floor(position.y);
 
       return {
         troops: state.troops.map((troop) => {
-          const newTroop = newTroops.find((t) => t.id === troop.id);
-
-          if (troop.chopTreeId && newTroop && !newTroop?.chopTreeId) {
-            eventBus.dispatch('stop-cutting', { troop });
-          }
-
-          if (newTroop) {
-            return newTroop;
+          if (troop.selected) {
+            return createActionsFromUserInput(troop, position);
           }
 
           return troop;
@@ -198,44 +125,15 @@ export const createTroopsSlicer: StateCreator<
 
   cutTree: (id) =>
     set((state) => {
-      const trees = state.trees;
-
       return {
         troops: state.troops.map((troop) => {
-          if (troop.chopTreeId === id) {
-            let closestDistance = Infinity;
-            let closestTree: TreeEntity | undefined;
+          const action = troop.actions.at(0);
 
-            for (const tree of trees) {
-              const x = tree.position.x * TILE_SIZE;
-              const y = tree.position.y * TILE_SIZE;
-
-              if (tree.health > 0) {
-                const distance = Math.sqrt(
-                  (troop.position.x - x) * (troop.position.x - x) +
-                    (troop.position.y - y) * (troop.position.y - y),
-                );
-
-                if (distance < closestDistance) {
-                  closestDistance = distance;
-                  closestTree = tree;
-                }
-              }
-            }
-
-            if (closestTree) {
-              return moveTroops([troop], {
-                x: closestTree.position.x * TILE_SIZE,
-                y: closestTree.position.y * TILE_SIZE,
-              })[0];
-            }
-
-            return {
-              ...troop,
-              animation: PawnAnimation.Idle,
-              chopTreeId: undefined,
-              destinationAction: undefined,
-            };
+          if (
+            action?.destinationAction === 'chop' &&
+            action.chopTreeId === id
+          ) {
+            return createActionsAfterCutTree(troop, id);
           }
 
           return troop;

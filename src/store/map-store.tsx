@@ -12,7 +12,18 @@ const treeSeed = perlinNoise.seed(2);
 const map: MAP_TYPE[][] = [];
 const trees: TreeEntity[] = [];
 
-const walls: Record<string, boolean> = {};
+const walls: Record<string, boolean> = {
+  [wallKey(5, 7)]: true,
+  [wallKey(6, 7)]: true,
+  [wallKey(7, 7)]: true,
+  [wallKey(8, 7)]: true,
+  [wallKey(9, 7)]: true,
+  [wallKey(5, 6)]: true,
+  [wallKey(6, 6)]: true,
+  [wallKey(7, 6)]: true,
+  [wallKey(8, 6)]: true,
+  [wallKey(9, 6)]: true,
+};
 
 const decorations: Record<string, DecorationEntity> = {};
 
@@ -37,6 +48,7 @@ for (let x = 0; x < MAP_SIZE; x++) {
         reachable: false,
         reachableDirection: 'left',
         health: 100,
+        troopsChopping: [],
       });
 
       walls[wallKey(x, y)] = true;
@@ -96,8 +108,39 @@ export const createMapSlicer: StateCreator<GameState, [], [], MapState> = (
 ) => ({
   map,
   trees: trees.map((tree) => updateTree(walls, tree)),
+  troopsChoppingTrees: {},
   walls,
   decorations,
+
+  addTroopToChopTree: (troopId, treeId) =>
+    set((state) => {
+      return {
+        trees: state.trees.map((tree) =>
+          tree.id === treeId
+            ? {
+                ...tree,
+                troopsChopping: [...new Set([...tree.troopsChopping, troopId])],
+              }
+            : tree,
+        ),
+      };
+    }),
+
+  removeTroopToChopTree: (troopId, treeId) =>
+    set((state) => {
+      return {
+        trees: state.trees.map((tree) =>
+          tree.id === treeId
+            ? {
+                ...tree,
+                troopsChopping: tree.troopsChopping.filter(
+                  (id) => id !== troopId,
+                ),
+              }
+            : tree,
+        ),
+      };
+    }),
 
   chopTree: (id) =>
     set((state) => {
@@ -118,12 +161,22 @@ export const createMapSlicer: StateCreator<GameState, [], [], MapState> = (
             tree.id === id
               ? {
                   ...tree,
+                  troopsChopping: [],
                   health: 0,
                 }
               : tree;
 
           return updateTree(newWalls, newTree);
         }),
+      };
+    }),
+
+  removeTree: (id) =>
+    set((state) => {
+      console.log('##', state.trees.length);
+
+      return {
+        trees: state.trees.filter((tree) => tree.id !== id),
       };
     }),
 });

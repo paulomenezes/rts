@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/index.tsx';
 import { TILE_SIZE, Z_INDEX } from '../util/const.ts';
-import { TroopEntity } from '../util/types.ts';
+import { TroopActionsMoveEntity, TroopEntity } from '../util/types.ts';
 
 export function Troop({
   imageWidth,
@@ -35,18 +35,21 @@ export function Troop({
   const trees = useGameStore((state) => state.trees);
   const setTroopPosition = useGameStore((state) => state.setTroopPosition);
 
-  const startX = useMemo(
-    () => troop.position.x - TILE_SIZE,
-    [troop.position.x],
-  );
-  const startY = useMemo(
-    () => troop.position.y - TILE_SIZE,
-    [troop.position.y],
+  const [pathIndex, setPathIndex] = useState(0);
+
+  const [startX, startY] = useMemo(
+    () => [troop.position.x, troop.position.y],
+    [troop.position],
   );
 
+  const action = useMemo(() => troop.actions.at(0), [troop.actions.at(0)]);
+
   const destination = useMemo(
-    () => troop.path?.at(troop.pathIndex ?? 0),
-    [troop.path, troop.pathIndex],
+    () =>
+      action?.destinationAction === 'move'
+        ? action.path?.at(pathIndex)
+        : undefined,
+    [action, pathIndex],
   );
 
   const [posX, setPosX] = useState(startX);
@@ -56,54 +59,60 @@ export function Troop({
 
   useEffect(() => {
     if (destination) {
-      const destX = Math.max(-TILE_SIZE, destination.x - width / 2);
-      const destY = Math.max(-TILE_SIZE, destination.y - height / 2);
+      const destX = Math.max(-1, destination.x); // - width / 2);
+      const destY = Math.max(-1, destination.y); // - height / 2);
 
       if (destX < posX) {
-        setPosX((prev) => Math.max(destX, prev - 3));
+        setPosX((prev) => Math.max(destX, prev - frameTime / 150));
       } else if (destX > posX) {
-        setPosX((prev) => Math.min(destX, prev + 3));
+        setPosX((prev) => Math.min(destX, prev + frameTime / 150));
       }
 
       if (destY < posY) {
-        setPosY((prev) => Math.max(destY, prev - 3));
+        setPosY((prev) => Math.max(destY, prev - frameTime / 150));
       } else if (destY > posY) {
-        setPosY((prev) => Math.min(destY, prev + 3));
+        setPosY((prev) => Math.min(destY, prev + frameTime / 150));
       }
 
-      if (Math.abs(destX - posX) < 2 && Math.abs(destY - posY) < 2) {
+      if (Math.abs(destX - posX) < 0.1 && Math.abs(destY - posY) < 0.1) {
         setTroopPosition(troop.id, {
-          x: destX + TILE_SIZE,
-          y: destY + TILE_SIZE,
+          x: destX,
+          y: destY,
         });
+
+        setPathIndex((prev) => {
+          if (prev + 1 === (action as TroopActionsMoveEntity)!.path!.length) {
+            return 0;
+          }
+
+          return prev + 1;
+        });
+
+        setPosX(destX);
+        setPosY(destY);
       } else {
         setFlip(destX < posX);
       }
-    } else if (troop.destinationAction === 'chop') {
-      const tree = trees.find((tree) => tree.id === troop.chopTreeId);
+    } else if (action?.destinationAction === 'chop') {
+      const tree = trees.find((tree) => tree.id === action.chopTreeId);
 
-      if (tree && tree.position.x - troop.position.x / TILE_SIZE === -1) {
+      if (tree && tree.position.x - troop.position.x === -1) {
         setFlip(true);
       }
     }
   }, [frameTime]);
 
-  const offsetY = useMemo(
-    () => Math.floor((height ?? TILE_SIZE) / TILE_SIZE / 2),
-    [height],
-  );
-
   return (
     <>
-      {troop.path && debug && (
+      {action?.destinationAction === 'move' && action.path && debug && (
         <>
-          {troop.path.map((p, i) => (
+          {action.path.map((p, i) => (
             <div
               key={i}
               className="absolute z-50 h-16 w-16 bg-blue-500/40"
               style={{
-                left: p.x - TILE_SIZE / 2,
-                top: p.y - TILE_SIZE / 2,
+                left: p.x * TILE_SIZE,
+                top: p.y * TILE_SIZE,
               }}
             />
           ))}
@@ -113,24 +122,24 @@ export function Troop({
         <div
           className="absolute z-50 border-2 border-blue-500"
           style={{
-            top: startY,
-            left: startX,
+            top: startY * TILE_SIZE - TILE_SIZE,
+            left: startX * TILE_SIZE - TILE_SIZE,
             width,
             height,
           }}
         >
-          <span className="absolute top-[64px] text-white">
-            {(posY / TILE_SIZE + offsetY) * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP}
+          <span className="absolute left-16 top-[50px] bg-black text-xs text-white">
+            {/* {posX.toFixed(2)} - {posY.toFixed(2)} */}
+            {troop.id} - {troop.carryAmount}
           </span>
         </div>
       )}
       <div
         className="absolute"
         style={{
-          zIndex:
-            (posY / TILE_SIZE + offsetY) * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP,
-          top: posY,
-          left: posX,
+          zIndex: posY * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP,
+          top: posY * TILE_SIZE - TILE_SIZE,
+          left: posX * TILE_SIZE - TILE_SIZE,
           width,
           height,
         }}
@@ -180,6 +189,42 @@ export function Troop({
           }
         />
       </div>
+
+      {troop.carryAmount > 0 && (
+        <div
+          className="absolute overflow-hidden"
+          style={{
+            top: posY * TILE_SIZE - TILE_SIZE,
+            left: posX * TILE_SIZE - TILE_SIZE,
+            zIndex: posY * Z_INDEX.ITEM_OFFSET + Z_INDEX.TROOP,
+            width: '128px',
+            height: '128px',
+          }}
+        >
+          {troop.carryAmount > 1 && <ResourceAsset x={36} y={-15} />}
+          {troop.carryAmount > 2 && <ResourceAsset x={30} y={-29} />}
+          {troop.carryAmount > 0 && <ResourceAsset x={22} y={-15} />}
+        </div>
+      )}
     </>
+  );
+}
+
+function ResourceAsset({ x, y }: { x: number; y: number }) {
+  return (
+    <div
+      className="absolute overflow-hidden"
+      style={
+        {
+          width: '128px',
+          height: '128px',
+          top: y,
+          left: x,
+          transform: 'scaleX(-1)',
+        } as CSSProperties
+      }
+    >
+      <img src="/assets/Resources/Resources/W_Idle.png" />
+    </div>
   );
 }

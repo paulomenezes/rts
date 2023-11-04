@@ -1,0 +1,7 @@
+// __mocks__/vitest-env.d.ts
+/// <reference types="vite/client" />
+/// <reference types="vitest/globals" />
+
+import '@testing-library/jest-dom';
+
+vi.mock('zustand');

@@ -1,5 +1,5 @@
 export const TILE_SIZE = 64;
-export const MAP_SIZE = 80;
+export const MAP_SIZE = 20;
 
 export const CAMERA_MAP_OFFSET = 2;
 
@@ -13,6 +13,7 @@ export const Z_INDEX = {
   MAP_DEBUG: 25,
 
   TREE: 30,
+  RESOURCE: 30,
   TREE_DEBUG: 4000,
 
   ITEM_OFFSET: 100,

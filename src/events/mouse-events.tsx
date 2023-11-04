@@ -24,8 +24,8 @@ export const MouseEvents = memo(function MouseEvents() {
       event.preventDefault();
 
       moveSelectedTroops({
-        x: event.clientX - cameraPosition.x * TILE_SIZE,
-        y: event.clientY - cameraPosition.y * TILE_SIZE,
+        x: event.clientX / TILE_SIZE - cameraPosition.x,
+        y: event.clientY / TILE_SIZE - cameraPosition.y,
       });
     }
 
@@ -33,8 +33,8 @@ export const MouseEvents = memo(function MouseEvents() {
       event.preventDefault();
 
       setStartPos({
-        x: event.clientX - cameraPosition.x * TILE_SIZE,
-        y: event.clientY - cameraPosition.y * TILE_SIZE,
+        x: event.clientX / TILE_SIZE - cameraPosition.x,
+        y: event.clientY / TILE_SIZE - cameraPosition.y,
       });
       setDragging(true);
     }
@@ -43,8 +43,8 @@ export const MouseEvents = memo(function MouseEvents() {
       event.preventDefault();
 
       setPosition({
-        x: event.clientX - cameraPosition.x * TILE_SIZE,
-        y: event.clientY - cameraPosition.y * TILE_SIZE,
+        x: event.clientX / TILE_SIZE - cameraPosition.x,
+        y: event.clientY / TILE_SIZE - cameraPosition.y,
       });
     }
 
@@ -52,8 +52,8 @@ export const MouseEvents = memo(function MouseEvents() {
       event.preventDefault();
 
       selectAllTroopsWithSameType({
-        x: event.clientX - cameraPosition.x * TILE_SIZE,
-        y: event.clientY - cameraPosition.y * TILE_SIZE,
+        x: event.clientX / TILE_SIZE - cameraPosition.x,
+        y: event.clientY / TILE_SIZE - cameraPosition.y,
       });
     }
 
@@ -65,36 +65,36 @@ export const MouseEvents = memo(function MouseEvents() {
       setDragging(false);
 
       if (startPos) {
-        const delta = 5;
+        const delta = 1;
         const diffX = Math.abs(
-          event.clientX - cameraPosition.x * TILE_SIZE - startPos?.x,
+          event.clientX / TILE_SIZE - cameraPosition.x - startPos?.x,
         );
         const diffY = Math.abs(
-          event.clientY - cameraPosition.y * TILE_SIZE - startPos?.y,
+          event.clientY / TILE_SIZE - cameraPosition.y - startPos?.y,
         );
 
         if (diffX < delta && diffY < delta) {
           if (firstClickTime && Date.now() - firstClickTime < 300) {
             selectAllTroopsWithSameType({
-              x: event.clientX - cameraPosition.x * TILE_SIZE,
-              y: event.clientY - cameraPosition.y * TILE_SIZE,
+              x: event.clientX / TILE_SIZE - cameraPosition.x,
+              y: event.clientY / TILE_SIZE - cameraPosition.y,
             });
           } else {
             selectTroops({
-              x: event.clientX - cameraPosition.x * TILE_SIZE,
-              y: event.clientY - cameraPosition.y * TILE_SIZE,
+              x: event.clientX / TILE_SIZE - cameraPosition.x,
+              y: event.clientY / TILE_SIZE - cameraPosition.y,
             });
           }
         } else {
           selectTroopsByArea(startPos, {
-            x: event.clientX - cameraPosition.x * TILE_SIZE,
-            y: event.clientY - cameraPosition.y * TILE_SIZE,
+            x: event.clientX / TILE_SIZE - cameraPosition.x,
+            y: event.clientY / TILE_SIZE - cameraPosition.y,
           });
         }
       } else {
         selectTroops({
-          x: event.clientX - cameraPosition.x * TILE_SIZE,
-          y: event.clientY - cameraPosition.y * TILE_SIZE,
+          x: event.clientX / TILE_SIZE - cameraPosition.x,
+          y: event.clientY / TILE_SIZE - cameraPosition.y,
         });
       }
     }
@@ -121,10 +121,10 @@ export const MouseEvents = memo(function MouseEvents() {
           className="absolute border-2 border-white bg-white/20"
           style={{
             zIndex: Z_INDEX.MOUSE,
-            left: Math.min(startPos.x, position.x),
-            top: Math.min(startPos.y, position.y),
-            width: Math.abs(startPos.x - position.x),
-            height: Math.abs(startPos.y - position.y),
+            left: Math.min(startPos.x * TILE_SIZE, position.x * TILE_SIZE),
+            top: Math.min(startPos.y * TILE_SIZE, position.y * TILE_SIZE),
+            width: Math.abs(startPos.x * TILE_SIZE - position.x * TILE_SIZE),
+            height: Math.abs(startPos.y * TILE_SIZE - position.y * TILE_SIZE),
           }}
         />
       )}

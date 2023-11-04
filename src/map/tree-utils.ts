@@ -1,4 +1,4 @@
-import { wallKey } from '../util/const.ts';
+import { MAP_SIZE, wallKey } from '../util/const.ts';
 import { TreeEntity } from '../util/types.ts';
 
 export function updateTree(
@@ -14,7 +14,13 @@ export function updateTree(
     const x = tree.position.x + side[0];
     const y = tree.position.y + side[1];
 
-    if (!newWalls[wallKey(x, y)]) {
+    if (
+      !newWalls[wallKey(x, y)] &&
+      x >= 0 &&
+      x < MAP_SIZE &&
+      y >= 0 &&
+      y < MAP_SIZE
+    ) {
       directions.push(side[0] === -1 ? 'left' : 'right');
     }
   }

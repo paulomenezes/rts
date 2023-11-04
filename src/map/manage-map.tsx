@@ -1,3 +1,4 @@
+// import { useVirtualizer } from '@tanstack/react-virtual';
 import { CSSProperties, Fragment, memo } from 'react';
 import { useGameStore } from '../store/index.tsx';
 import {
@@ -25,12 +26,87 @@ const DECORATIONS_LARGE: Record<number, { width: number; height: number }> = {
 };
 
 export const ManageMap = memo(function ManageMap() {
-  const debug = useGameStore((state) => state.debug);
   const map = useGameStore((state) => state.map);
-  const walls = useGameStore((state) => state.walls);
   const decorations = useGameStore((state) => state.decorations);
   const cameraPosition = useGameStore((state) => state.cameraPosition);
   const tilesOnScreen = useGameStore((state) => state.tilesOnScreen);
+  // const parentRef = useRef(null);
+
+  // const rowVirtualizer = useVirtualizer({
+  //   count: MAP_SIZE,
+  //   getScrollElement: () => parentRef.current,
+  //   estimateSize: () => TILE_SIZE,
+  //   overscan: 5,
+  // });
+
+  // const columnVirtualizer = useVirtualizer({
+  //   horizontal: true,
+  //   count: MAP_SIZE,
+  //   getScrollElement: () => parentRef.current,
+  //   estimateSize: () => TILE_SIZE,
+  //   overscan: 5,
+  // });
+
+  // useEffect(() => {
+  //   console.log(cameraPosition, rowVirtualizer.scrollOffset);
+
+  //   rowVirtualizer.scrollBy(cameraPosition.y * -1 * TILE_SIZE, {
+  //     behavior: 'smooth',
+  //   });
+
+  //   columnVirtualizer.scrollBy(cameraPosition.x * -1 * TILE_SIZE, {
+  //     behavior: 'smooth',
+  //   });
+  // }, [cameraPosition]);
+
+  // return (
+  //   <div
+  //     ref={parentRef}
+  //     className="List"
+  //     style={{
+  //       height: `100vw`,
+  //       width: `100vh`,
+  //       overflow: 'hidden',
+  //     }}
+  //   >
+  //     <div
+  //       style={{
+  //         height: `${rowVirtualizer.getTotalSize()}px`,
+  //         width: `${columnVirtualizer.getTotalSize()}px`,
+  //         position: 'relative',
+  //       }}
+  //     >
+  //       {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+  //         <Fragment key={virtualRow.key}>
+  //           {columnVirtualizer.getVirtualItems().map((virtualColumn) => (
+  //             <div
+  //               key={virtualColumn.key}
+  //               className={
+  //                 virtualColumn.index % 2
+  //                   ? virtualRow.index % 2 === 0
+  //                     ? 'ListItemOdd'
+  //                     : 'ListItemEven'
+  //                   : virtualRow.index % 2
+  //                   ? 'ListItemOdd'
+  //                   : 'ListItemEven'
+  //               }
+  //               style={{
+  //                 position: 'absolute',
+  //                 top: 0,
+  //                 left: 0,
+  //                 width: `${virtualColumn.size}px`,
+  //                 height: `${virtualRow.size}px`,
+  //                 transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
+  //               }}
+  //             >
+  //               {virtualRow.index}, {virtualColumn.index}
+  //             </div>
+  //           ))}
+  //         </Fragment>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
 
   return (
     <div className="absolute">
@@ -215,21 +291,6 @@ export const ManageMap = memo(function ManageMap() {
                   decoration?.place === 'ground' && (
                     <Decoration x={x} y={y} type={decoration.type} />
                   )
-                )}
-
-                {debug && walls[wallKey(x, y)] && (
-                  <div
-                    className="absolute flex items-center justify-center bg-red-500/40 text-center"
-                    style={
-                      {
-                        width: TILE_SIZE,
-                        height: TILE_SIZE,
-                        top: TILE_SIZE * y,
-                        left: TILE_SIZE * x,
-                        zIndex: y + Z_INDEX.MAP_DEBUG,
-                      } as CSSProperties
-                    }
-                  />
                 )}
               </Fragment>
             );

@@ -1,0 +1,39 @@
+.resource,
+.resourceIdle {
+  width: 128px;
+  height: 128px;
+}
+
+.resourceIdle img {
+  animation: opacityResource 0.5s;
+}
+
+.resource.wood img {
+  animation: moveResource 0.5s steps(7) 1 forwards;
+}
+
+.resource img {
+  width: 896px;
+  height: 128px;
+
+  position: absolute;
+  max-width: none;
+}
+
+@keyframes moveResource {
+  from {
+    transform: translate3d(0px, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes opacityResource {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: -100%;
+  }
+}
